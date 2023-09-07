@@ -1,16 +1,72 @@
 package br.com.fiap.domain.entity;
 
-import java.time.LocalDate;
+import jakarta.persistence.*;
 
-public class Inventario  {
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+@Entity
+@Table(name = "TB_INVENTARIO")
+public class Inventario {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SQ_INVENTARIO")
+    @SequenceGenerator(name = "SQ_INVENTARIO", sequenceName = "SQ_INVENTARIO")
+    @Column(name = "ID_INVENTARIO")
     private Long id;
 
-     private LocalDate inicio;
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "TB_BENS_INVENTARIADOS",
+            joinColumns = {
+                    @JoinColumn(
+                            name = "ID_INVENTARIO",
+                            referencedColumnName = "ID_INVENTARIO",
+                            foreignKey = @ForeignKey(name = "FK_INVENTARIO_BEM"))
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(
+                            name = "ID_BEM",
+                            referencedColumnName = "ID_BEM",
+                            foreignKey = @ForeignKey (name = "FK_BEM_INV")
+                    )
+            }
+    )
 
+    private Set<Bem> bens = new LinkedHashSet<>();
+
+    public Set<Bem> getBens() {
+        return Collections.unmodifiableSet(bens);
+    }
+
+    public Inventario addBem(Bem b) {
+        bens.add(b);
+        return this;
+    }
+
+    public Inventario removeBem(Bem b) {
+        bens.remove(b);
+        return this;
+    }
+
+    @Column(name = "DT_INICIO", nullable = false)
+    private LocalDate inicio;
+
+    @Column(name = "DT_FIM")
     private LocalDate fim;
 
+    @ManyToOne
+    @JoinColumn(
+            name = "DEPARTAMENTO",
+            referencedColumnName = "ID_DEPARTAMENTO",
+            foreignKey = @ForeignKey(name = "FK_INVENTARIO_DEPARTAMENTO"),
+            nullable = false
+    )
     private Departamento departamento;
 
+    @Column(name = "RELATORIO")
     private String relatorio;
 
     public Inventario() {
